@@ -32,6 +32,13 @@ public class Point {
 		this.x = x;
 		this.y = y;
 	}
+	
+	public Point(Double x, Double y, int i) {
+		super();
+		this.x = x;
+		this.y = y;
+		I = i;
+	}
 	@Override
 	public String toString() {
 		return "[x=" + x + ", y=" + y + "]";
