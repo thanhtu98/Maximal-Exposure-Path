@@ -19,10 +19,12 @@ public class Main {
 	final static int rMax = 15;
 	final static double vMax = 2; // 2m/s
 	final static double delS = 0.5;
-	final static double tMax = 400;// 400s
+	final static double tMax = 200;// 200s
 	static Random rd = new Random();
 	static Point S = new Point(0.0, rd.nextInt(200) * delS);
 	static Point F = new Point(200.0, rd.nextInt(200) * delS);
+	static double yMax = Math.max(F.getY(), S.getY());
+	static double yMin = Math.min(F.getY(), S.getY());
 
 	static double calLength(Point a, Sensor b) {
 		return Math.sqrt((Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2)));
@@ -42,31 +44,28 @@ public class Main {
 
 	public static double calEx(List<Point>[] p, int row, int col, double t) {
 		double rs = 0;
-		Point point = new Point(S.getX(), S.getY());
-		int cout = 0;
-		while (!point.equals(F)) {
-			int r = (int) (point.getY() / delS);
-			if (point.getY() < row) {
-				rs += (point.getI() + p[r + 1].get(0).getI()) / 2;
-				point.setY(point.getY() + delS);
-			} else if (point.getY() > row) {
-				rs += (point.getI() + p[r - 1].get(0).getI()) / 2;
-				point.setY(point.getY() - delS);
-			} else {
-				if ((int) (point.getX() / delS) == col) {
-					point.setY(point.getX() + 2 * delS);
+		int i = (int) ((S.getY() - yMin) / delS);// row start
+		int k = (int) ((F.getY() - yMin) / delS);// row finish
+		if (i < row) {
+			for (int j = i; j < row; j++) {
+				rs += (p[j].get(0).getI() + p[j + 1].get(0).getI()) / 2;
+			}
+			for (int m = i; m < k; m++) {
+				rs += (p[m].get(0).getI() + p[m + 1].get(0).getI()) / 2;
+			}
+		} else if (i > row) {
+			for (int j = i; j > row; j--) {
+				rs += (p[j].get(0).getI() + p[j - 1].get(0).getI()) / 2;
+			}
+			for (int m = i; m > k; m--) {
+				rs += (p[m].get(0).getI() + p[m - 1].get(0).getI()) / 2;
+			}
+		} else {
+			for (int l = 0; l < 399; l++) {
+				if (l == col) {
+					l += 2;
 				}
-				rs += (point.getI() + p[r].get(cout).getI()) / 2;
-				point.setY(point.getX() + delS);
-				if (point.getX() == W) {
-					if (point.getY() < row) {
-						rs += (point.getI() + p[r + 1].get(0).getI()) / 2;
-						point.setY(point.getY() + delS);
-					} else if (point.getY() > row) {
-						rs += (point.getI() + p[r - 1].get(0).getI()) / 2;
-						point.setY(point.getY() - delS);
-					}
-				}
+				rs += (p[i].get(l).getI() + p[i].get(l + 1).getI()) / 2;
 			}
 
 		}
@@ -79,35 +78,32 @@ public class Main {
 
 		LinkedList<Sensor> listS = new LinkedList<Sensor>();
 
-		try (BufferedReader br = new BufferedReader(
-				new FileReader(new File("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\src\\sensor.txt")))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				String[] coordinatesString = line.split(";");
-				Sensor s = new Sensor();
-				s.setX(Double.parseDouble(coordinatesString[0]));
-				s.setY(Double.parseDouble(coordinatesString[1]));
-				s.setR(Integer.parseInt(coordinatesString[2]));
-				listS.add(s);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		/*
+		 * try (BufferedReader br = new BufferedReader( new FileReader(new
+		 * File("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\src\\sensor.txt")
+		 * ))) { String line; while ((line = br.readLine()) != null) { String[]
+		 * coordinatesString = line.split(";"); Sensor s = new Sensor();
+		 * s.setX(Double.parseDouble(coordinatesString[0]));
+		 * s.setY(Double.parseDouble(coordinatesString[1]));
+		 * s.setR(Integer.parseInt(coordinatesString[2])); listS.add(s); } } catch
+		 * (Exception e) { e.printStackTrace(); }
+		 */
+
+		for (int i = 0; i < N; i++) {
+			Sensor s = new Sensor();
+			s.setX(rd.nextDouble() * W);
+			s.setY(rd.nextDouble() * H);
+			s.setR(rd.nextInt(rMax) + 1);
+			listS.add(s);
 		}
 
 		/*
-		 * for (int i = 0; i < N; i++) { Sensor s = new Sensor(); s.setX(rd.nextDouble()
-		 * * W); s.setY(rd.nextDouble() * H); s.setR(rd.nextInt(rMax) + 1);
-		 * listS.add(s); }
-		 */
-
-		/*
-		 * for(int i=0; i<listS.size();i++) {
+		 * for (int i = 0; i < listS.size(); i++) {
 		 * System.out.println(listS.get(i).toString()); }
 		 */
 
 		int itmax = 0;
-		double yMax = Math.max(F.getY(), S.getY());
-		double yMin = Math.min(F.getY(), S.getY());
+
 		Point t = new Point(0.0, yMin);
 		int len = (int) ((yMax - yMin) / delS + 1);
 		int row = (int) (W / delS + 1);
@@ -115,9 +111,6 @@ public class Main {
 		for (int i = 0; i < len; i++) {
 			listP[i] = new LinkedList<Point>();
 		}
-		System.out.println(S.toString() + "\n" + F.toString());
-		System.out.println("do dai la: " + len);
-		int c = 0;
 		for (int i = 0; i < len; i++) {
 			for (int j = 0; j < row; j++) {
 				int it = 0;
@@ -136,7 +129,7 @@ public class Main {
 			t.setY(t.getY() + delS);
 			t.setX(0.0);
 		}
-		System.out.println("it max la " + itmax);
+		// System.out.println("it max la " + itmax);
 
 		/*
 		 * do { int it = 0; for (int i = 0; i < listS.size(); i++) { if (calLength(t,
@@ -166,19 +159,20 @@ public class Main {
 			}
 		}
 
-		System.out.println(S.toString() + "\n" + F.toString());
-		System.out.println("diem co I max la " + itmax);
-		System.out.println(timeStop);
-		System.out.println(dt);
-
-		/*
-		 * for (double d : maxE) { System.out.println(d); }
-		 */
-
-		System.out.println(listP[0].size() + "\n" + listP[len - 1].size());
-		System.out.println(listP[1].get(40).getI());
-		System.out.println(listP[2].get(200).getI());
-		System.out.println(listP[len - 1].get(60).getI());
+		System.out.println("diem bat dau: " + S.toString() + "\ndiem ket thuc: " + F.toString());
+		// System.out.println("I max la " + itmax);
+		System.out.println("thoi gian dung lai: " + timeStop);
+		System.out.println("thoi gian di chuyen: " + dt);
+		Double maxEP = Double.MIN_VALUE;
+		int idx = -1;
+		for (int i = 0; i < maxE.length; i++) {
+			if (maxE[i] > maxEP) {
+				maxEP = maxE[i];
+				idx = i;
+			}
+		}
+		System.out.println("gia tri maximal exposure path la: " + maxEP + " duong di qua canh co tung do la: "
+				+ (idx * delS + yMin));
 
 	}
 
