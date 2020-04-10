@@ -95,70 +95,23 @@ public class Main {
         int k = (int) ((finishPoint.getX()) / delS);// col finish
         Point p1 = findMaxExposure(p, idx);
         int xmax = (int) (W / delS + 1);
-        if (i < idx) {
-            for (int j = i; j < idx; j++) {
-                if (p[0].get(j).equals(p1)) {
-                    break;
-                }
-                rs += (p[0].get(j).getI() + p[0].get(j + 1).getI()) / 2;
+        for (int m = Math.min(i, idx); m < Math.max(i, idx); m++) {
+            if (p[0].get(m).equals(p1)) {
+                break;
             }
-            for (int m = 0; m < xmax; m++) {
-                if (p[idx].get(m).equals(p1)) {
-                    break;
-                }
-                rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
+            rs += (p[0].get(m).getI() + p[0].get(m + 1).getI()) / 2;
+        }
+        for (int m = 0; m < xmax; m++) {
+            if (p[idx].get(m).equals(p1)) {
+                break;
             }
-            if (k < idx) {
-                for (int n = idx; n > k; n--) {
-                    if (p[xmax - 1].get(n).equals(p1)) {
-                        break;
-                    }
-                    rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n - 1).getI()) / 2;
-                }
-            } else {
-                for (int n = idx; n < k; n++) {
-                    if (p[xmax - 1].get(n).equals(p1)) {
-                        break;
-                    }
-                    rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n + 1).getI()) / 2;
-                }
+            rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
+        }
+        for (int m = Math.min(i, k); m < Math.min(i, k); m++) {
+            if (p[xmax - 1].get(m).equals(p1)) {
+                break;
             }
-        } else if (i > idx) {
-            for (int j = i; j > idx; j--) {
-                if (p[0].get(j).equals(p1)) {
-                    break;
-                }
-                rs += (p[0].get(j).getI() + p[0].get(j - 1).getI()) / 2;
-            }
-            for (int m = 0; m < xmax; m++) {
-                if (p[idx].get(m).equals(p1)) {
-                    break;
-                }
-                rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
-            }
-            if (k < idx) {
-                for (int n = idx; n > k; n--) {
-                    if (p[xmax - 1].get(n).equals(p1)) {
-                        break;
-                    }
-                    rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n - 1).getI()) / 2;
-                }
-            } else {
-                for (int n = idx; n < k; n++) {
-                    if (p[xmax - 1].get(n).equals(p1)) {
-                        break;
-                    }
-                    rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n + 1).getI()) / 2;
-                }
-            }
-        } else {
-            for (int l = 0; l < xmax; l++) {
-                if (p[i].get(l).equals(p1)) {
-                    break;
-                }
-                rs += (p[i].get(l).getI() + p[i].get(l + 1).getI()) / 2;
-            }
-
+            rs += (p[xmax - 1].get(m).getI() + p[xmax - 1].get(m + 1).getI()) / 2;
         }
 
         return rs * t + p1.getI() * (tMax - t);
