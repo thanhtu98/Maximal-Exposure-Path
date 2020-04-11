@@ -102,25 +102,16 @@ public class Main {
 		int xmax = (int) (W / delS + 1);
 		double stp = W + Math.abs((i - idx) * delS) + Math.abs((k - idx) * delS);// do dai duong di ket hop 2 duong ngan
 																					// nhat
-		double tm = stp / vMax - delS / vMax;
+		double tm = stp / vMax;
 		double timeStop = tMax - tm;
 
 		for (int m = Math.min(i, idx); m < Math.max(i, idx); m++) {
-			if (p[0].get(m).equals(p1)) {
-				break;
-			}
 			rs += (p[0].get(m).getI() + p[0].get(m + 1).getI()) / 2;
 		}
 		for (int m = 0; m < xmax - 1; m++) {
-			if (p[idx].get(m).equals(p1)) {
-				break;
-			}
 			rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
 		}
 		for (int m = Math.min(i, k); m < Math.min(i, k); m++) {
-			if (p[xmax - 1].get(m).equals(p1)) {
-				break;
-			}
 			rs += (p[xmax - 1].get(m).getI() + p[xmax - 1].get(m + 1).getI()) / 2;
 		}
 
@@ -131,7 +122,7 @@ public class Main {
 		// doc sensor tu file
 		Main net = new Main();
 		try {
-			net.initialFromFile("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\src\\200.txt");
+			net.initialFromFile("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\src\\20.txt");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
