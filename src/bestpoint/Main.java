@@ -6,41 +6,61 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Main {
 
 	final static double W = 100;
 	final static double H = 100;
-	final static int N = 50;
-	final static int rMax = 15;
-	final static double vMax = 2; // 2m/s
+	final static double vMax = 5;
 	final static double delS = 0.5;
-	final static double tMax = 200;// 200s
-	static Random rd = new Random();
-	static Point S = new Point(0.0, rd.nextInt(200) * delS);
-	static Point F = new Point(200.0, rd.nextInt(200) * delS);
-	static double yMax = Math.max(F.getY(), S.getY());
-	static double yMin = Math.min(F.getY(), S.getY());
+	final static double tMax = 100;
+	int N;
+	Point S;
+	Point F;
+	LinkedList<Sensor> listS = new LinkedList<Sensor>();
+	/*
+	 * static Random rd = new Random(); static Point S = new Point(5.0, 0.0); static
+	 * Point F = new Point(49.5, 100.0);
+	 */
 
 	static double calLength(Point a, Sensor b) {
 		return Math.sqrt((Math.pow(a.getX() - b.getX(), 2) + Math.pow(a.getY() - b.getY(), 2)));
 	}
 
-	static public void generateSensor(int numSensor, int rMax) {
+	public void initialFromFile(String file) throws Exception {
+		Scanner sc = new Scanner(new BufferedReader(new FileReader(file)));
+		String[] line = sc.nextLine().trim().split(" ");
+		this.N = Integer.parseInt(line[0]);
+		for (int i = 0; i < this.N; i++) {
+			line = sc.nextLine().trim().split(" ");
+			Double x = Double.parseDouble(line[0]);
+			Double y = Double.parseDouble(line[1]);
+			Double r = Double.parseDouble(line[2]);
+			Sensor sensor = new Sensor(x, y, r);
+			this.listS.add(sensor);
+		}
+
+		line = sc.nextLine().trim().split(" ");
+		this.S = new Point(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+
+		line = sc.nextLine().trim().split(" ");
+		this.F = new Point(Double.parseDouble(line[0]), Double.parseDouble(line[1]));
+		sc.close();
+
+	}
+
+	public void writeFile(String file, Point S, Point F, int idx) {
 		BufferedWriter bw;
 		try {
-			bw = new BufferedWriter(new FileWriter("sensor.txt"));
-			for (int i = 0; i < numSensor; i++) {
-				double x = rd.nextDouble() * W;
-				double y = rd.nextDouble() * H;
-				int r = rd.nextInt(rMax) + 1;
-				bw.write(x + ";" + y + ";" + r);
-				bw.newLine();
-			}
+			bw = new BufferedWriter(new FileWriter(file));
+			bw.write(S.getX()+" "+ S.getY()+"\n");
+			bw.write(idx+" 0.0\n");
+			bw.write(idx+" 100.0\n");
+			bw.write(F.getX()+" "+ F.getY()+"\n");
 			bw.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -49,127 +69,71 @@ public class Main {
 
 	}
 
-	public static Point findMax(List<Point>[] p, int col) {
+	public static Point findMax(List<Point>[] p, int col, Point S, Point F) {
 		int rowStart = (int) (S.getX() / delS);
 		int rowFinish = (int) (F.getX() / delS);
-		int rowMax = (int) (W / delS+1);
-		Point rs;
-		if (Math.min(col, rowStart) == col) {
-			rs = new Point(col * delS, 0.0);
-		} else {
-			rs = F;
-		}
+		int rowMax = (int) (W / delS + 1);
+		Point rs = new Point();
+		rs.setI(-1);
+
 		for (int i = Math.min(col, rowStart) + 1; i < Math.max(col, rowStart); i++) {
 			if (p[0].get(i).getI() > rs.getI()) {
 				rs = p[0].get(i);
 			}
 		}
-		for (int j = 0; j < (int) (H / delS); j++) {
-			if (rs.getI() < p[j].get(Math.max(col, rowStart)).getI()) {
-				rs = p[j].get(Math.max(col, rowStart));
+		for (int j = 0; j < (int) (H / delS + 1); j++) {
+			if (rs.getI() < p[col].get(j).getI()) {
+				rs = p[col].get(j);
 			}
 		}
-		int start = Math.max(col, rowStart);
-		for (int k = Math.min(start, rowFinish) + 1; k < Math.max(start, rowFinish); k++) {
-			if (rs.getI() < p[rowMax].get(k).getI()) {
-				rs = p[rowMax].get(k);
+		for (int k = Math.min(col, rowFinish); k < Math.max(col, rowFinish); k++) {
+			if (rs.getI() < p[rowMax - 1].get(k).getI()) {
+				rs = p[rowMax - 1].get(k);
 			}
 		}
 		return rs;
 	}
 
-	public static double calEx(List<Point>[] p, int idx, double t) {
+	public static double calEx(List<Point>[] p, int idx, Point S, Point F) {
 		double rs = 0;
 		int i = (int) ((S.getX()) / delS);// col start
 		int k = (int) ((F.getX()) / delS);// col finish
-		Point p1 = findMax(p, idx);
+		Point p1 = findMax(p, idx, S, F);
 		int xmax = (int) (W / delS + 1);
-		if (i < idx) {
-			for (int j = i; j < idx; j++) {
-				if (p[0].get(j).equals(p1)) {
-					break;
-				}
-				rs += (p[0].get(j).getI() + p[0].get(j + 1).getI()) / 2;
-			}
-			for (int m = 0; m < xmax; m++) {
-				if (p[idx].get(m).equals(p1)) {
-					break;
-				}
-				rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
-			}
-			if (k < idx) {
-				for (int n = idx; n > k; n--) {
-					if (p[xmax - 1].get(n).equals(p1)) {
-						break;
-					}
-					rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n - 1).getI()) / 2;
-				}
-			} else {
-				for (int n = idx; n < k; n++) {
-					if (p[xmax - 1].get(n).equals(p1)) {
-						break;
-					}
-					rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n + 1).getI()) / 2;
-				}
-			}
-		} else if (i > idx) {
-			for (int j = i; j > idx; j--) {
-				if (p[0].get(j).equals(p1)) {
-					break;
-				}
-				rs += (p[0].get(j).getI() + p[0].get(j - 1).getI()) / 2;
-			}
-			for (int m = 0; m < xmax; m++) {
-				if (p[idx].get(m).equals(p1)) {
-					break;
-				}
-				rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
-			}
-			if (k < idx) {
-				for (int n = idx; n > k; n--) {
-					if (p[xmax - 1].get(n).equals(p1)) {
-						break;
-					}
-					rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n - 1).getI()) / 2;
-				}
-			} else {
-				for (int n = idx; n < k; n++) {
-					if (p[xmax - 1].get(n).equals(p1)) {
-						break;
-					}
-					rs += (p[xmax - 1].get(n).getI() + p[xmax - 1].get(n + 1).getI()) / 2;
-				}
-			}
-		} else {
-			for (int l = 0; l < xmax; l++) {
-				if (p[i].get(l).equals(p1)) {
-					break;
-				}
-				rs += (p[i].get(l).getI() + p[i].get(l + 1).getI()) / 2;
-			}
+		double stp = W + Math.abs((i - idx) * delS) + Math.abs((k - idx) * delS);// do dai duong di ket hop 2 duong ngan
+																					// nhat
+		double tm = stp / vMax - delS / vMax;
+		double timeStop = tMax - tm;
 
+		for (int m = Math.min(i, idx); m < Math.max(i, idx); m++) {
+			if (p[0].get(m).equals(p1)) {
+				break;
+			}
+			rs += (p[0].get(m).getI() + p[0].get(m + 1).getI()) / 2;
+		}
+		for (int m = 0; m < xmax - 1; m++) {
+			if (p[idx].get(m).equals(p1)) {
+				break;
+			}
+			rs += (p[idx].get(m).getI() + p[idx].get(m + 1).getI()) / 2;
+		}
+		for (int m = Math.min(i, k); m < Math.min(i, k); m++) {
+			if (p[xmax - 1].get(m).equals(p1)) {
+				break;
+			}
+			rs += (p[xmax - 1].get(m).getI() + p[xmax - 1].get(m + 1).getI()) / 2;
 		}
 
-		return rs * t + p1.getI() * (tMax - t);
+		return rs * delS / vMax + p1.getI() * timeStop;
 	}
 
 	public static void main(String[] args) {
-		// khoi tao random sensor
-		// generateSensor(N, rMax);
-		LinkedList<Sensor> listS = new LinkedList<Sensor>();
-
-		try (BufferedReader br = new BufferedReader(
-				new FileReader(new File("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\sensor.txt")))) {
-			String line;
-			while ((line = br.readLine()) != null) {
-				String[] coordinatesString = line.split(";");
-				Sensor s = new Sensor();
-				s.setX(Double.parseDouble(coordinatesString[0]));
-				s.setY(Double.parseDouble(coordinatesString[1]));
-				s.setR(Integer.parseInt(coordinatesString[2]));
-				listS.add(s);
-			}
+		// doc sensor tu file
+		Main net = new Main();
+		try {
+			net.initialFromFile("C:\\Users\\Trant\\eclipse-workspace\\MaxExposurePath\\src\\200.txt");
 		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -183,8 +147,8 @@ public class Main {
 		for (int i = 0; i < len; i++) {
 			for (int j = 0; j < row; j++) {
 				int it = 0;
-				for (int k = 0; k < listS.size(); k++) {
-					if (calLength(t, listS.get(k)) < listS.get(k).getR()) {
+				for (int k = 0; k < net.listS.size(); k++) {
+					if (calLength(t, net.listS.get(k)) < net.listS.get(k).getR()) {
 						it++;
 					}
 				}
@@ -196,32 +160,28 @@ public class Main {
 		}
 		// System.out.println("it max la " + itmax);
 
-		double stp = W + yMax - yMin;// do dai duong di ngan nhat
-
-		double tm = stp / vMax - delS / vMax;
-		double timeStop = tMax - tm;
-		double dt = delS / vMax;
-
 		double[] maxE = new double[listP.length];
-		/*for (int i = 0; i < len; i++) {
-			maxE[i] = calEx(listP, i, dt);
-		}*/
 
-		System.out.println("diem bat dau: " + S.toString() + "\ndiem ket thuc: " + F.toString());
-		// System.out.println("I max la " + itmax);
-		System.out.println("thoi gian dung lai: " + timeStop);
-		System.out.println("thoi gian di chuyen: " + dt);
-		Double maxEP = Double.MIN_VALUE;
-		int idx = -1;
 		for (int i = 0; i < len; i++) {
-			/*if (maxE[i] > maxEP) {
-				maxEP = maxE[i];
-				idx = i;
-			}*/
-			System.out.println(findMax(listP, i).toString());
+			maxE[i] = calEx(listP, i, net.S, net.F);
 		}
-		System.out.println("gia tri maximal exposure path la: " + maxEP + " duong di qua canh co tung do la: "
-				+ (idx * delS + yMin));
+
+		System.out.println("diem bat dau: " + net.S.toString() + "\ndiem ket thuc: " + net.F.toString());
+		/*
+		 * System.out.println("thoi gian dung lai: " + timeStop);
+		 * System.out.println("thoi gian di chuyen: " + dt);
+		 */
+		Double maxEP = Double.MIN_VALUE;
+		int max = -1;
+		for (int i = 0; i < maxE.length; i++) {
+			if (maxEP < maxE[i]) {
+				maxEP = maxE[i];
+				max = i;
+			}
+		}
+		//net.writeFile("output200.txt", net.S, net.F, max);
+		System.out.println("gia tri maximal exposure path la: " + maxEP);
+		System.out.println(max);
 	}
 
 }
