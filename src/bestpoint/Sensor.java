@@ -3,7 +3,7 @@ package bestpoint;
 public class Sensor {
 	double x;
 	double y;
-	int r;
+	double r;
 	public double getX() {
 		return x;
 	}
@@ -16,10 +16,17 @@ public class Sensor {
 	public void setY(double y) {
 		this.y = y;
 	}
-	public int getR() {
+	public double getR() {
 		return r;
 	}
-	public void setR(int r) {
+	public void setR(Double r) {
+		this.r = r;
+	}
+	
+	public Sensor(double x, double y, double r) {
+		super();
+		this.x = x;
+		this.y = y;
 		this.r = r;
 	}
 	@Override
