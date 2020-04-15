@@ -131,6 +131,7 @@ public class Main {
 		Point t = new Point(0.0, 0.0);
 		int len = (int) (H / delS + 1);
 		int row = (int) (W / delS + 1);
+		//tinh cuong do cam bien tai moi diem va luu lai
 		LinkedList<Point>[] listP = new LinkedList[len];
 		for (int i = 0; i < len; i++) {
 			listP[i] = new LinkedList<Point>();
